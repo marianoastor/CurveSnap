@@ -1,0 +1,30 @@
+name: Build (Windows)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/dpi-awareness]
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      # The project targets the VS2010 toolset (v100), which is not installed on
+      # the runner, so build with v143 instead.
+      - name: Build Release|Win32
+        run: msbuild src\CurveSnap.vcxproj /m /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 /p:SolutionDir=$env:GITHUB_WORKSPACE\src\
+
+      - name: Collect binaries
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item bin\Release\CurveSnap.exe dist\
+          Copy-Item vendor\opencv\bin\*249.dll dist\
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CurveSnap-Release-Win32
+          path: dist\
