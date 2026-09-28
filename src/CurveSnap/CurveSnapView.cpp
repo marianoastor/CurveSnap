@@ -395,12 +395,26 @@ void CCurveSnapView::OnMouseMove(UINT nFlags, CPoint point)
   {
     if( nFlags & MK_LBUTTON )
     {
-      pDoc->extractor.Draw(point, operation-100);
+      DrawAt(point);
       this->Invalidate(false);
     }
   }
 
   CView::OnMouseMove(nFlags, point);
+}
+
+void CCurveSnapView::DrawAt(CPoint point)
+{
+  CCurveSnapDoc* pDoc = GetDocument();
+
+  if (operation == ERASING)
+  {
+    CMainFrame *pFrmWnd = (CMainFrame*)AfxGetMainWnd();
+    pDoc->extractor.Draw(point, pFrmWnd->m_wndToolOptions.GetEraserSize()/2.0,
+                         pFrmWnd->m_wndToolOptions.IsEraserSquare());
+  }
+  else
+    pDoc->extractor.Draw(point, operation-100);
 }
 
 void CCurveSnapView::OnEditEraser()
@@ -495,7 +509,7 @@ void CCurveSnapView::OnLButtonDown(UINT nFlags, CPoint point)
     break;
   case ERASING:
   case PEN:
-    pDoc->extractor.Draw(point, operation-100);
+    DrawAt(point);
     this->Invalidate(false);
     pDoc->UpdateAllViews(this);
     //if (!pDoc->extractor.IsExtracted())
@@ -524,7 +538,8 @@ void CCurveSnapView::OnLButtonDown(UINT nFlags, CPoint point)
     }
     break;
   case CHOOSING_COLOR:
-    if (pDoc->extractor.ChooseColorCurve(point))
+    if (pDoc->extractor.ChooseColorCurve(point,
+          ((CMainFrame*)AfxGetMainWnd())->m_wndToolOptions.GetColorThreshold()))
     {
       Invalidate(FALSE);
       pDoc->UpdateAllViews(this);

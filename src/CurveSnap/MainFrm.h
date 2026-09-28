@@ -6,6 +6,7 @@
 
 
 #include "MainToolBar.h"
+#include "ToolOptionsBar.h"
 
 
 class CMainFrame : public CFrameWnd
@@ -45,6 +46,7 @@ public:
 public:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CMainToolBar m_wndToolBar;
+	CToolOptionsBar m_wndToolOptions;
 	//CToolBar    m_wndToolBar;
 
 // Generated message map functions

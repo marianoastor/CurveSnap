@@ -28,8 +28,12 @@ public:
         PEN         = 101,            // Pen size:101-100=1
     };
 
+    OPERATION GetOperation() const { return operation; }
+
 private:
     OPERATION operation;
+
+    void DrawAt(CPoint point);	// eraser/pen stroke at point
 
     CWinThread* _pChooseConnectCurveThread;
     CWinThread* _pExtractThread;

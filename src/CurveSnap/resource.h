@@ -20,6 +20,7 @@
 #define IDB_BITMAP_FULLSCREEN_DOWN      140
 #define IDB_BITMAP_PLOT                 141
 #define IDB_BITMAP_XOOFEE89             147
+#define IDD_TOOL_OPTIONS                148
 #define IDC_EDIT_X                      1000
 #define IDC_EDIT_Y                      1001
 #define IDC_BTN_COPY                    1002
@@ -58,6 +59,18 @@
 #define IDC_BTN_RIGHT                   1040
 #define IDC_PIC                         1041
 #define IDC_CHECK_NORMALIZE_Y           1042
+#define IDC_LABEL_TOOL_NAME             1043
+#define IDC_LABEL_ERASER_SIZE           1044
+#define IDC_EDIT_ERASER_SIZE            1045
+#define IDC_SPIN_ERASER_SIZE            1046
+#define IDC_LABEL_ERASER_PX             1047
+#define IDC_LABEL_ERASER_SHAPE          1048
+#define IDC_RADIO_ERASER_ROUND          1049
+#define IDC_RADIO_ERASER_SQUARE         1050
+#define IDC_LABEL_COLOR_THRESHOLD       1051
+#define IDC_EDIT_COLOR_THRESHOLD        1052
+#define IDC_SPIN_COLOR_THRESHOLD        1053
+#define IDC_LABEL_COLOR_HINT            1054
 #define ID_CURVE_CHOOSECURVE            32792
 #define ID_EDITCOLOR_PICKER             32796
 #define ID_EDIT_COLOR_PICKER            32796
@@ -78,9 +91,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        148
+#define _APS_NEXT_RESOURCE_VALUE        149
 #define _APS_NEXT_COMMAND_VALUE         32823
-#define _APS_NEXT_CONTROL_VALUE         1043
+#define _APS_NEXT_CONTROL_VALUE         1055
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

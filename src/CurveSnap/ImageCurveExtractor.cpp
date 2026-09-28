@@ -58,7 +58,7 @@ void ImageCurveExtractor::SetEraserColor(COLORREF color)
 
 // This function should be optimized.
 // Draw the circle in WINDOW directly, and update extractor in the end
-void ImageCurveExtractor::Draw(POINT p, int radius)
+void ImageCurveExtractor::Draw(POINT p, double radius, bool square)
 {
 	// Take care of the ::Invalidate to avoid hight CPU
     if (!IsImageSet())
@@ -68,9 +68,17 @@ void ImageCurveExtractor::Draw(POINT p, int radius)
 
 	int r = cvx::round(radius/shower.GetScale());
 
-    cv::circle(imgProcess, v, r, eraserColor, -1);
-	cv::Mat matCurveOld = _matCurve.clone();
-	cv::circle(_matCurve, v, r, cv::Scalar(0), -1);
+	if (square)
+	{
+		cv::Point d(r, r);
+		cv::rectangle(imgProcess, v - d, v + d, eraserColor, -1);
+		cv::rectangle(_matCurve, v - d, v + d, cv::Scalar(0), -1);
+	}
+	else
+	{
+		cv::circle(imgProcess, v, r, eraserColor, -1);
+		cv::circle(_matCurve, v, r, cv::Scalar(0), -1);
+	}
 
 	// for efficiency comment following codes, for this function is called in loop
 
@@ -98,13 +106,15 @@ void ImageCurveExtractor::Draw(POINT p, int radius)
 
 	if (!singlePoints.empty())
 	{
-		int r = radius;
+		double r = radius;
 		if (r<5)
 			r=5;
 		for (list<cv::Point2d>::iterator it = singlePoints.begin();
 				it != singlePoints.end();)
 		{
-			if (cv::norm(shower.Show2Original(p) - *it) <= r)
+			cv::Point2d d = shower.Show2Original(p) - *it;
+			double dist = square ? std::max(fabs(d.x), fabs(d.y)) : cv::norm(d);
+			if (dist <= r)
 			{
 				cv::Point v = cvx::round(*it);
 				_matCurve.at<uchar>(v.y,v.x) = 0;
@@ -436,7 +446,7 @@ void ImageCurveExtractor::Extract()
 	//}
 }
 
-bool ImageCurveExtractor::ChooseColorCurve(POINT p)
+bool ImageCurveExtractor::ChooseColorCurve(POINT p, double threshold)
 {
 	// 1. color sample area
 	cv::Point v = cvx::round(shower.Show2Original(p));
@@ -498,7 +508,7 @@ bool ImageCurveExtractor::ChooseColorCurve(POINT p)
 			double db = lab[j][2] - meanLab[2];
 
 			// CIE76 color difference (8-bit L is scaled by 2.55). JND:2.3
-			if (dL*dL/(2.55*2.55) + da*da + db*db < 25*25)
+			if (dL*dL/(2.55*2.55) + da*da + db*db < threshold*threshold)
 				out[j] = 255;
 		}
 	}
