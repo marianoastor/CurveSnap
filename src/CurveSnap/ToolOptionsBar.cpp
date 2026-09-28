@@ -52,19 +52,16 @@ BOOL CToolOptionsBar::Create(CWnd* pParentWnd)
 		return FALSE;
 
 	// Setting a range makes the spin write its clamped position (1) to the
-	// edit, and EN_CHANGE would overwrite the defaults: keep them aside.
+	// edit, and EN_CHANGE overwrites the defaults: keep them aside. SetPos32
+	// does not update the edit here, so write the text directly; the spin
+	// (UDS_SETBUDDYINT) takes its position from the edit.
 	int eraserSize = _eraserSize;
 	int colorThreshold = (int)_colorThreshold;
 
-	CSpinButtonCtrl* pSpinEraser = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_ERASER_SIZE);
-	CSpinButtonCtrl* pSpinColor = (CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_COLOR_THRESHOLD);
-	pSpinEraser->SetRange32(1, 500);
-	pSpinColor->SetRange32(1, 200);
-	pSpinEraser->SetPos32(eraserSize);
-	pSpinColor->SetPos32(colorThreshold);
-
-	_eraserSize = eraserSize;
-	_colorThreshold = colorThreshold;
+	((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_ERASER_SIZE))->SetRange32(1, 500);
+	((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_COLOR_THRESHOLD))->SetRange32(1, 200);
+	SetDlgItemInt(IDC_EDIT_ERASER_SIZE, eraserSize);
+	SetDlgItemInt(IDC_EDIT_COLOR_THRESHOLD, colorThreshold);
 	CheckRadioButton(IDC_RADIO_ERASER_ROUND, IDC_RADIO_ERASER_SQUARE,
 		_eraserSquare ? IDC_RADIO_ERASER_SQUARE : IDC_RADIO_ERASER_ROUND);
 

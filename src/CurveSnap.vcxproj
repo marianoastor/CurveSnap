@@ -159,6 +159,7 @@
     <ClInclude Include="CurveSnap\PixelCoordPair.h" />
     <ClInclude Include="CurveSnap\PlotView.h" />
     <ClInclude Include="CurveSnap\resource.h" />
+    <ClInclude Include="CurveSnap\ScopedPhysicalDpi.h" />
     <ClInclude Include="CurveSnap\ScreenImage.h" />
     <ClInclude Include="CurveSnap\ScreenSelectionDialog.h" />
     <ClInclude Include="CurveSnap\SnapTracker.h" />

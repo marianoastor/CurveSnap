@@ -12,6 +12,7 @@
 #include "MainFrm.h"
 
 #include "DialogCoord.h"
+#include "ScopedPhysicalDpi.h"
 
 #define WM_CHOOSE_CONNECT_DONE WM_USER + 1
 #define WM_EXTRACT_DONE WM_USER + 2
@@ -466,6 +467,22 @@ static HCURSOR CreateShapeCursor(double half, bool square)
   return hCursor;
 }
 
+// The process is DPI-unaware: Windows stretches our windows at >100% scaling,
+// but not a cursor built at runtime. Returns physical pixels per window pixel.
+static double GetDpiStretch(HWND hwnd)
+{
+  CRect logical, physical;
+  ::GetWindowRect(hwnd, &logical);
+  {
+    ScopedPhysicalDpi physical_dpi;
+    ::GetWindowRect(hwnd, &physical);
+  }
+
+  if (logical.Width() <= 0 || physical.Width() <= 0)
+    return 1.0;
+  return double(physical.Width()) / logical.Width();
+}
+
 void CCurveSnapView::SetEraserCursor()
 {
   CMainFrame *pFrmWnd = (CMainFrame*)AfxGetMainWnd();
@@ -479,6 +496,7 @@ void CCurveSnapView::SetEraserCursor()
   if (scale <= 0)
     scale = 1.0;
   double half = (cvx::round(radius/scale) + 0.5) * scale;
+  half *= GetDpiStretch(m_hWnd);
 
   if (!_cursorEraserShape || half != _eraserCursorHalf || square != _eraserCursorSquare)
   {
