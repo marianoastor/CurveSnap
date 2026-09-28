@@ -193,6 +193,48 @@ cv::Mat ImageCurveExtractor::Threshold(cv::Mat img)
 	return imgBin;
 }
 
+// Pixels of bin reachable from seed by steps that move one pixel up or down,
+// or one column in direction dx (-1: left, +1: right), possibly also one row.
+// Same result as repeating a one-sided 3x3 dilation masked by bin until it
+// stops changing, but each pixel is visited once instead of once per step.
+static cv::Mat GrowCurve(const cv::Mat& seed, const cv::Mat& bin, int dx)
+{
+	const int rows = bin.rows, cols = bin.cols;
+	cv::Mat result = seed & bin;
+	std::vector<int> stack;		// pixels to expand, as y*cols+x
+
+	for (int y = 0; y < rows; y++)
+	{
+		const uchar* s = seed.ptr<uchar>(y);
+		for (int x = 0; x < cols; x++)
+			if (s[x])
+				stack.push_back(y*cols + x);
+	}
+
+	const int steps[5][2] = {{0,-1}, {0,1}, {dx,-1}, {dx,0}, {dx,1}};	// {x,y}
+	while (!stack.empty())
+	{
+		int i = stack.back();
+		stack.pop_back();
+		int y = i / cols, x = i % cols;
+
+		for (int k = 0; k < 5; k++)
+		{
+			int qx = x + steps[k][0], qy = y + steps[k][1];
+			if (qx < 0 || qx >= cols || qy < 0 || qy >= rows)
+				continue;
+			uchar& r = result.at<uchar>(qy, qx);
+			if (!r && bin.at<uchar>(qy, qx))
+			{
+				r = 255;
+				stack.push_back(qy*cols + qx);
+			}
+		}
+	}
+
+	return result;
+}
+
 void ImageCurveExtractor::ChooseConnectCurve()
 {
 	cv::Point v = cvx::round(shower.Show2Original(choosedPoint));
@@ -234,67 +276,17 @@ void ImageCurveExtractor::ChooseConnectCurve()
 
 	imgBin &= ~_matCurve;	// only choose in the non-chosen part
 
-    // Curve was found
-
-    cv::Mat leftKernel(3,3, CV_8U, cv::Scalar(255));
-    leftKernel.at<uchar>(0,0) = 0;
-    leftKernel.at<uchar>(1,0) = 0;
-    leftKernel.at<uchar>(2,0) = 0;
-
-    cv::Mat rightKernel;
-    cv::flip(leftKernel, rightKernel, 1);
-    cv::Mat kernels[2] = {leftKernel, rightKernel};
-
-    cv::Mat matCurves[2] = {matCurveStart, matCurveStart.clone()};
-
-    //imgShow = imgProcess.clone() + cv::Scalar(64,64,64);
-    //imgShow = imgProcess.clone();
+    // Curve was found: follow it to the left, then to the right
 
 	running = true;
-    for (int k = 0; k < 2; k++)
-    {
-        cv::Mat matCurveLast = matCurves[k].clone();
-        int n = 0;
-
-		// Start dilating
-        while (true)
-        {
-            n++;
-            cv::dilate(matCurveLast, matCurves[k], kernels[k]);
-            matCurves[k] = matCurves[k] & imgBin;
-
-            //cv::Mat diff;
-            //cv::bitwise_xor(matCurves[k], matCurveLast, diff);
-
-            ////afxDump <<"dilating: " << ++n <<"," << cv::countNonZero(diff) << "\n";
-
-			if (cvx::IsSame(matCurves[k], matCurveLast))
-                break;
-            else
-                matCurveLast = matCurves[k].clone();    // clone is necessary!
-
-            if (n%20 == 0)
-            {
-                // Draw the process in CView by multithread
-				_matCurve |= matCurves[k];
-				CheckCurve();
-				UpdateShowers();
-				shower.InvalidateRect(NULL, FALSE);
-				choosedShower.InvalidateRect(NULL, FALSE);
-            }
-        }
-		_matCurve |= matCurves[k];
+	for (int dx = -1; dx <= 1; dx += 2)
+	{
+		_matCurve |= GrowCurve(matCurveStart, imgBin, dx);
 		CheckCurve();
 		UpdateShowers();
 		shower.InvalidateRect(NULL, FALSE);
 		choosedShower.InvalidateRect(NULL, FALSE);
-    }
-
- //   _matCurve |= matCurves[0] | matCurves[1];
-
-	////::InvalidateRect(hWnd, NULL, FALSE);
-	//CheckCurve();
-	//UpdateShowers();
+	}
 
 	_extracted = false;
 
