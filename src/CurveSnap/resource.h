@@ -57,6 +57,7 @@
 #define IDC_BTN_DOWN                    1039
 #define IDC_BTN_RIGHT                   1040
 #define IDC_PIC                         1041
+#define IDC_CHECK_NORMALIZE_Y           1042
 #define ID_CURVE_CHOOSECURVE            32792
 #define ID_EDITCOLOR_PICKER             32796
 #define ID_EDIT_COLOR_PICKER            32796
@@ -79,7 +80,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        148
 #define _APS_NEXT_COMMAND_VALUE         32823
-#define _APS_NEXT_CONTROL_VALUE         1042
+#define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           104
 #endif
 #endif

@@ -59,6 +59,8 @@ public:
   BOOL fixed_x_;
   BOOL fixed_y_;
 
+  BOOL normalize_y_;  // divide output y by its largest absolute value
+
 private:
 	std::vector<double> x_;
 	std::vector<double> y_;
