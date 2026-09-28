@@ -101,6 +101,13 @@ std::string GetXYDataString(std::vector<T> x,
 	if (n < 1)
 		return "";
 
+	// The VS2010 STL printed precision 0 (non-fixed) as 6 significant digits;
+	// conforming STLs print a single digit, so keep the old default explicitly.
+	if (!fixed_x && precision_x <= 0)
+		precision_x = 6;
+	if (!fixed_y && precision_y <= 0)
+		precision_y = 6;
+
 	std::stringstream ss;
 
 	for (int i=0; i < n; i++)
