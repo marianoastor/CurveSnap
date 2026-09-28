@@ -641,7 +641,8 @@ void CCurveSnapView::OnLButtonDown(UINT nFlags, CPoint point)
     break;
   case CHOOSING_COLOR:
     if (pDoc->extractor.ChooseColorCurve(point,
-          ((CMainFrame*)AfxGetMainWnd())->m_wndToolOptions.GetColorThreshold()))
+          ((CMainFrame*)AfxGetMainWnd())->m_wndToolOptions.GetColorThreshold(),
+          ((CMainFrame*)AfxGetMainWnd())->m_wndToolOptions.IsColorConnectedOnly()))
     {
       Invalidate(FALSE);
       pDoc->UpdateAllViews(this);

@@ -17,7 +17,7 @@ static const UINT eraserCtrls[] = {
 
 static const UINT colorCtrls[] = {
 	IDC_LABEL_COLOR_THRESHOLD, IDC_EDIT_COLOR_THRESHOLD, IDC_SPIN_COLOR_THRESHOLD,
-	IDC_LABEL_COLOR_HINT
+	IDC_LABEL_COLOR_HINT, IDC_CHECK_COLOR_CONNECTED
 };
 
 // CToolOptionsBar
@@ -32,6 +32,7 @@ CToolOptionsBar::CToolOptionsBar()
 	_eraserSize = 18;
 	_eraserSquare = false;
 	_colorThreshold = 25;
+	_colorConnected = true;
 }
 
 CToolOptionsBar::~CToolOptionsBar()
@@ -44,6 +45,7 @@ BEGIN_MESSAGE_MAP(CToolOptionsBar, CDialogBar)
 	ON_BN_CLICKED(IDC_RADIO_ERASER_ROUND, &CToolOptionsBar::OnBnClickedEraserShape)
 	ON_BN_CLICKED(IDC_RADIO_ERASER_SQUARE, &CToolOptionsBar::OnBnClickedEraserShape)
 	ON_EN_CHANGE(IDC_EDIT_COLOR_THRESHOLD, &CToolOptionsBar::OnEnChangeColorThreshold)
+	ON_BN_CLICKED(IDC_CHECK_COLOR_CONNECTED, &CToolOptionsBar::OnBnClickedColorConnected)
 END_MESSAGE_MAP()
 
 
@@ -62,6 +64,7 @@ BOOL CToolOptionsBar::Create(CWnd* pParentWnd)
 	SetDlgItemInt(IDC_EDIT_COLOR_THRESHOLD, (int)_colorThreshold);
 	CheckRadioButton(IDC_RADIO_ERASER_ROUND, IDC_RADIO_ERASER_SQUARE,
 		_eraserSquare ? IDC_RADIO_ERASER_SQUARE : IDC_RADIO_ERASER_ROUND);
+	CheckDlgButton(IDC_CHECK_COLOR_CONNECTED, _colorConnected ? BST_CHECKED : BST_UNCHECKED);
 
 	_tool = TOOL_ERASER;	// force ShowTool to update
 	ShowTool(TOOL_NONE);
@@ -156,4 +159,9 @@ void CToolOptionsBar::OnEnChangeColorThreshold()
 	if (!_initialized)
 		return;
 	_colorThreshold = ReadInt(IDC_EDIT_COLOR_THRESHOLD, 1, 200, (int)_colorThreshold);
+}
+
+void CToolOptionsBar::OnBnClickedColorConnected()
+{
+	_colorConnected = IsDlgButtonChecked(IDC_CHECK_COLOR_CONNECTED) != 0;
 }
