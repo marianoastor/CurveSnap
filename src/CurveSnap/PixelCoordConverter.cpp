@@ -40,8 +40,8 @@ void PixelCoordConverter::CheckPointsProper()
         return;
     }
 
-    double dx = abs(pixelCoord[0].GetPX() - pixelCoord[1].GetPX());
-    double dy = abs(pixelCoord[0].GetPY() - pixelCoord[1].GetPY());
+    double dx = fabs(pixelCoord[0].GetPX() - pixelCoord[1].GetPX());
+    double dy = fabs(pixelCoord[0].GetPY() - pixelCoord[1].GetPY());
 
     if (dx<1 || dy<1)
     {
