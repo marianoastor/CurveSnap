@@ -261,6 +261,10 @@
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>..\vendor\opencv\lib\</AdditionalLibraryDirectories>
     </Link>
+    <Manifest>
+      <!-- DPI-unaware so Windows scales the UI; Snap switches to physical pixels itself. -->
+      <EnableDpiAwareness>false</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -291,6 +295,10 @@
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>..\vendor\opencv\lib\</AdditionalLibraryDirectories>
     </Link>
+    <Manifest>
+      <!-- DPI-unaware so Windows scales the UI; Snap switches to physical pixels itself. -->
+      <EnableDpiAwareness>false</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
     <Link>
