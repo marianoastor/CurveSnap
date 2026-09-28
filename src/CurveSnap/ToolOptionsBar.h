@@ -26,6 +26,7 @@ public:
 	int GetEraserSize() { return _eraserSize; }	// diameter in screen pixels
 	bool IsEraserSquare() { return _eraserSquare; }
 	double GetColorThreshold() { return _colorThreshold; }
+	bool IsColorConnectedOnly() { return _colorConnected; }
 
 protected:
 	virtual void OnUpdateCmdUI(CFrameWnd* pTarget, BOOL bDisableIfNoHndler);
@@ -41,10 +42,12 @@ private:
 	int _eraserSize;
 	bool _eraserSquare;
 	double _colorThreshold;
+	bool _colorConnected;
 
 protected:
 	afx_msg void OnEnChangeEraserSize();
 	afx_msg void OnBnClickedEraserShape();
 	afx_msg void OnEnChangeColorThreshold();
+	afx_msg void OnBnClickedColorConnected();
 	DECLARE_MESSAGE_MAP()
 };

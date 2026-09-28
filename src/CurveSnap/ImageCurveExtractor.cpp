@@ -438,7 +438,7 @@ void ImageCurveExtractor::Extract()
 	//}
 }
 
-bool ImageCurveExtractor::ChooseColorCurve(POINT p, double threshold)
+bool ImageCurveExtractor::ChooseColorCurve(POINT p, double threshold, bool connectedOnly)
 {
 	// 1. color sample area
 	cv::Point v = cvx::round(shower.Show2Original(p));
@@ -504,6 +504,11 @@ bool ImageCurveExtractor::ChooseColorCurve(POINT p, double threshold)
 				out[j] = 255;
 		}
 	}
+
+	// Keep only the pixels of that color connected to the clicked curve,
+	// following it as ChooseConnectCurve does
+	if (connectedOnly)
+		devBin = GrowCurve(matCurveStart, devBin, -1) | GrowCurve(matCurveStart, devBin, 1);
 
 	if (cv::countNonZero(devBin) > 0)
 	{

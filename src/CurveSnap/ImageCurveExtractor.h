@@ -49,7 +49,8 @@ public:
 
   // Choose data points by color. Inputs are the point in WINDOW, e.g.,in the Client of CView
   // threshold: max CIE76 color difference from the color of the curve near p
-  bool ChooseColorCurve(POINT p, double threshold = 25);
+  // connectedOnly: only the pixels of that color connected to the curve near p
+  bool ChooseColorCurve(POINT p, double threshold = 25, bool connectedOnly = false);
 
   bool ChoosePoint(POINT p);
 
