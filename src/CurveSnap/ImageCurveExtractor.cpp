@@ -477,60 +477,31 @@ bool ImageCurveExtractor::ChooseColorCurve(POINT p)
 
 	//
 	
-	img = imgProcess.clone();
-	cv::cvtColor(img, img, CV_BGR2Lab);
-	img.convertTo(img, CV_64FC3);
+	// Keep this in 8-bit Lab and compute the color difference per pixel:
+	// full-size CV_64FC3 temporaries (24 bytes/pixel each) exhaust the
+	// 32-bit address space on large images and crash the program.
+	cv::Scalar meanLab = cv::mean(img, matCurveStart);
 
-	//cv::Mat matmean(1,1,CV_8UC3, cv::Scalar(0,0,255));
-	//cv::cvtColor(matmean, matmean, CV_BGR2Lab);
-	//matmean.convertTo(matmean, CV_64FC3);
+	cv::Mat devBin(img.size(), CV_8U, cv::Scalar(0));
+	for (int i = 0; i < img.rows; i++)
+	{
+		const cv::Vec3b* lab = img.ptr<cv::Vec3b>(i);
+		const uchar* bin = imgBin.ptr<uchar>(i);
+		uchar* out = devBin.ptr<uchar>(i);
+		for (int j = 0; j < img.cols; j++)
+		{
+			if (!bin[j])
+				continue;
 
-	//cv::Vec3d a = matmean.at<cv::Vec3d>(0,0);
-	//cv::Scalar b(a);
-	//img -= b;
+			double dL = lab[j][0] - meanLab[0];
+			double da = lab[j][1] - meanLab[1];
+			double db = lab[j][2] - meanLab[2];
 
-	cv::Mat matCurveStartReduceRow;
-	cv::reduce(matCurveStart, matCurveStartReduceRow, 0, CV_REDUCE_MAX);
-	cv::Moments momHorz = cv::moments(matCurveStartReduceRow, true);
-	int c = cvRound(momHorz.m10/momHorz.m00);
-
-	cv::Moments momVert = cv::moments(matCurveStart.col(c), true);
-	int r = cvRound(momVert.m01/momVert.m00);
-
-
-	img = (img - cv::mean(img, matCurveStart));
-	//img = (img - cv::Scalar(img.at<cv::Vec3d>(r,c)))/2.0;
-
-	img = img.mul(img);
-	img.setTo(cv::Scalar::all(0), ~Threshold(imgProcess));
-	//cv::imshow("thresh", Threshold(imgProcess));
-	double minVal, maxVal;
-	cv::minMaxLoc(img, &minVal , &maxVal);
-	vector<cv::Mat> lab2;
-	cv::split(img, lab2);
-
-	cv::Mat dev;
-
-	// It's not wise to just use a b channel
-	cv::sqrt((lab2[0]/(2.55*2.55) + lab2[1] + lab2[2]), dev);	// CIE76 Color difference. JND:2.3
-
-	//cv::Mat devForHist;
-	//dev.convertTo(devForHist, CV_8U, 1);
-	//cvx::imhist("", devForHist, 0, imgBin);
-
-	//cv::minMaxLoc(dev, &minVal , &maxVal);
-	//afxDump << "\n##   " << maxVal << "mean: " << cv::mean(dev, imgBin)[0];
-
-	cv::Mat devBin = dev<25;
-	//cv::Mat devBin = dev<(cv::mean(dev, imgBin)[0]/3);
-	devBin.setTo(cv::Scalar::all(0), ~imgBin);
-	//cv::imshow("dev < 30",  devBin);
-
-	// show in gray
-	//cv::normalize(dev, dev, 0, 1, cv::NORM_MINMAX);
-	//dev = 1-dev;
-	//dev.setTo(cv::Scalar::all(0), ~imgBin);
-	//cv::imshow("dev",  dev);
+			// CIE76 color difference (8-bit L is scaled by 2.55). JND:2.3
+			if (dL*dL/(2.55*2.55) + da*da + db*db < 25*25)
+				out[j] = 255;
+		}
+	}
 
 	if (cv::countNonZero(devBin) > 0)
 	{
