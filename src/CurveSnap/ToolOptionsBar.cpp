@@ -26,6 +26,7 @@ IMPLEMENT_DYNAMIC(CToolOptionsBar, CDialogBar)
 
 CToolOptionsBar::CToolOptionsBar()
 {
+	_initialized = false;
 	_tool = TOOL_NONE;
 
 	_eraserSize = 18;
@@ -51,23 +52,21 @@ BOOL CToolOptionsBar::Create(CWnd* pParentWnd)
 	if (!CDialogBar::Create(pParentWnd, IDD_TOOL_OPTIONS, CBRS_TOP, AFX_IDW_DIALOGBAR))
 		return FALSE;
 
-	// Setting a range makes the spin write its clamped position (1) to the
-	// edit, and EN_CHANGE overwrites the defaults: keep them aside. SetPos32
-	// does not update the edit here, so write the text directly; the spin
-	// (UDS_SETBUDDYINT) takes its position from the edit.
-	int eraserSize = _eraserSize;
-	int colorThreshold = (int)_colorThreshold;
-
+	// The spins write their position (0, then 1 after SetRange32) to the edits
+	// while the bar is created and set up. _initialized keeps the resulting
+	// EN_CHANGEs from overwriting the defaults. The spins (UDS_SETBUDDYINT)
+	// take their position from the edit text.
 	((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_ERASER_SIZE))->SetRange32(1, 500);
 	((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_COLOR_THRESHOLD))->SetRange32(1, 200);
-	SetDlgItemInt(IDC_EDIT_ERASER_SIZE, eraserSize);
-	SetDlgItemInt(IDC_EDIT_COLOR_THRESHOLD, colorThreshold);
+	SetDlgItemInt(IDC_EDIT_ERASER_SIZE, _eraserSize);
+	SetDlgItemInt(IDC_EDIT_COLOR_THRESHOLD, (int)_colorThreshold);
 	CheckRadioButton(IDC_RADIO_ERASER_ROUND, IDC_RADIO_ERASER_SQUARE,
 		_eraserSquare ? IDC_RADIO_ERASER_SQUARE : IDC_RADIO_ERASER_ROUND);
 
 	_tool = TOOL_ERASER;	// force ShowTool to update
 	ShowTool(TOOL_NONE);
 
+	_initialized = true;
 	return TRUE;
 }
 
@@ -142,6 +141,8 @@ int CToolOptionsBar::ReadInt(int idEdit, int minVal, int maxVal, int current)
 
 void CToolOptionsBar::OnEnChangeEraserSize()
 {
+	if (!_initialized)
+		return;
 	_eraserSize = ReadInt(IDC_EDIT_ERASER_SIZE, 1, 500, _eraserSize);
 }
 
@@ -152,5 +153,7 @@ void CToolOptionsBar::OnBnClickedEraserShape()
 
 void CToolOptionsBar::OnEnChangeColorThreshold()
 {
+	if (!_initialized)
+		return;
 	_colorThreshold = ReadInt(IDC_EDIT_COLOR_THRESHOLD, 1, 200, (int)_colorThreshold);
 }

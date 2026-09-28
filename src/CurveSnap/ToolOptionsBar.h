@@ -35,6 +35,7 @@ private:
 	int ReadInt(int idEdit, int minVal, int maxVal, int current);
 
 private:
+	bool _initialized;	// ignore control notifications until Create is done
 	Tool _tool;
 
 	int _eraserSize;
