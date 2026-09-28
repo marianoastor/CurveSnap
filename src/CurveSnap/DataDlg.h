@@ -104,6 +104,7 @@ public:
   afx_msg void OnBnClickedBtnUpdate();
 public:
   afx_msg void OnBnClickedCheckPrecisionFixed();
+  afx_msg void OnBnClickedCheckNormalizeY();
 public:
   afx_msg void OnBnClickedRadioInterpLinear();
 public:

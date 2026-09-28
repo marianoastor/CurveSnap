@@ -22,6 +22,7 @@ DataProcessor::DataProcessor(void)
   fixed_x_ = FALSE;
   fixed_y_ = FALSE;
 
+  normalize_y_ = FALSE;
 
   separator_type_ = SEPARATOR_TAB;
   xticktype_ = XTICK_ORIGINAL_PIXELS;
@@ -96,16 +97,24 @@ void DataProcessor::Resample()
 }
 
 std::string DataProcessor::GetOutputString() {
-  if (IsOutputEmpty())
-    return xf::GetXYDataString<double>( x_,y_, 
-                                        separators_[separator_type_],
-                                        precision_x_, precision_y_,
-                                        fixed_x_, fixed_y_);
-  else
-    return xf::GetXYDataString<double>( xout_,yout_, 
-                                        separators_[separator_type_], 
-                                        precision_x_, precision_y_,
-                                        fixed_x_, fixed_y_);
+  const std::vector<double>& x = IsOutputEmpty() ? x_ : xout_;
+  std::vector<double> y = IsOutputEmpty() ? y_ : yout_;
+
+  if (normalize_y_) {
+    double ymax = 0;
+    for (size_t i = 0; i < y.size(); ++i)
+      if (fabs(y[i]) > ymax)
+        ymax = fabs(y[i]);
+
+    if (ymax > 0)
+      for (size_t i = 0; i < y.size(); ++i)
+        y[i] /= ymax;
+  }
+
+  return xf::GetXYDataString<double>( x, y,
+                                      separators_[separator_type_],
+                                      precision_x_, precision_y_,
+                                      fixed_x_, fixed_y_);
 }
 
 int DataProcessor::GetOutputLength() {

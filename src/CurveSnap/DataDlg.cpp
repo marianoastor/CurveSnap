@@ -49,6 +49,7 @@ void CDataDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Text(pDX, IDC_EDIT_PRECISION_Y, dataproc_.precision_y_);
   DDX_Check(pDX, IDC_CHECK_PRECISION_FIXED_X, dataproc_.fixed_x_);
   DDX_Check(pDX, IDC_CHECK_PRECISION_FIXED_Y, dataproc_.fixed_y_);
+  DDX_Check(pDX, IDC_CHECK_NORMALIZE_Y, dataproc_.normalize_y_);
   DDV_MinMaxInt(pDX, dataproc_.pixel_interval_, 1, 10000);
   DDX_Control(pDX, IDC_OUT_CHART, chart);
   DDX_Control(pDX, IDC_SPIN_INTERVAL, _spinInterval);
@@ -80,6 +81,7 @@ BEGIN_MESSAGE_MAP(CDataDlg, CDialog)
   ON_BN_CLICKED(IDC_BTN_UPDATE, &CDataDlg::OnBnClickedBtnUpdate)
   ON_BN_CLICKED(IDC_CHECK_PRECISION_FIXED_X, &CDataDlg::OnBnClickedCheckPrecisionFixed)
   ON_BN_CLICKED(IDC_CHECK_PRECISION_FIXED_Y, &CDataDlg::OnBnClickedCheckPrecisionFixed)
+  ON_BN_CLICKED(IDC_CHECK_NORMALIZE_Y, &CDataDlg::OnBnClickedCheckNormalizeY)
   ON_BN_CLICKED(IDC_RADIO_INTERP_LINEAR, &CDataDlg::OnBnClickedRadioInterpLinear)
   ON_BN_CLICKED(IDC_RADIO_INTERP_MONO_SPLINE, &CDataDlg::OnBnClickedRadioInterpMonoSpline)
 END_MESSAGE_MAP()
@@ -477,6 +479,12 @@ void CDataDlg::UpdateCurve()
 }
 
 void CDataDlg::OnBnClickedCheckPrecisionFixed()
+{
+  update_format_flag_ = true;
+  UpdateCurve();
+}
+
+void CDataDlg::OnBnClickedCheckNormalizeY()
 {
   update_format_flag_ = true;
   UpdateCurve();
