@@ -87,6 +87,7 @@
     <ClCompile Include="CurveSnap\ScreenImage.cpp" />
     <ClCompile Include="CurveSnap\ScreenSelectionDialog.cpp" />
     <ClCompile Include="CurveSnap\SnapTracker.cpp" />
+    <ClCompile Include="CurveSnap\ToolOptionsBar.cpp" />
     <ClCompile Include="CurveSnap\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -158,9 +159,11 @@
     <ClInclude Include="CurveSnap\PixelCoordPair.h" />
     <ClInclude Include="CurveSnap\PlotView.h" />
     <ClInclude Include="CurveSnap\resource.h" />
+    <ClInclude Include="CurveSnap\ScopedPhysicalDpi.h" />
     <ClInclude Include="CurveSnap\ScreenImage.h" />
     <ClInclude Include="CurveSnap\ScreenSelectionDialog.h" />
     <ClInclude Include="CurveSnap\SnapTracker.h" />
+    <ClInclude Include="CurveSnap\ToolOptionsBar.h" />
     <ClInclude Include="CurveSnap\stdafx.h" />
     <ClInclude Include="CurveSnap\XColorPickerXP.h" />
     <ClInclude Include="CurveSnap\XColorPopupXP.h" />

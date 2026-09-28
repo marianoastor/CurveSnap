@@ -75,6 +75,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	EnableDocking(CBRS_ALIGN_ANY);
 	DockControlBar(&m_wndToolBar);
 
+	// created after the toolbar is docked so that it is laid out below it
+	if (!m_wndToolOptions.Create(this))
+	{
+		TRACE0("Failed to create tool options bar\n");
+		return -1;      // fail to create
+	}
+
 
     int index = 0;
     RECT rect;

@@ -34,7 +34,8 @@ public:
 
   // Operation
 public:
-  void Draw(POINT p, int radius);
+  // radius is in WINDOW pixels
+  void Draw(POINT p, double radius, bool square = false);
   void ResetImage();
   void ResetCurve();
   void Clear();
@@ -47,7 +48,8 @@ public:
   bool ChooseRectCurve(RECT rc);
 
   // Choose data points by color. Inputs are the point in WINDOW, e.g.,in the Client of CView
-  bool ChooseColorCurve(POINT p);
+  // threshold: max CIE76 color difference from the color of the curve near p
+  bool ChooseColorCurve(POINT p, double threshold = 25);
 
   bool ChoosePoint(POINT p);
 

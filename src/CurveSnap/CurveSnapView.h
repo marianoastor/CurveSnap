@@ -28,8 +28,18 @@ public:
         PEN         = 101,            // Pen size:101-100=1
     };
 
+    OPERATION GetOperation() const { return operation; }
+
 private:
     OPERATION operation;
+
+    void DrawAt(CPoint point);	// eraser/pen stroke at point
+    void SetEraserCursor();
+
+    // Cursor outlining the area the eraser removes, rebuilt when it changes
+    HCURSOR _cursorEraserShape;
+    double _eraserCursorHalf;
+    bool _eraserCursorSquare;
 
     CWinThread* _pChooseConnectCurveThread;
     CWinThread* _pExtractThread;

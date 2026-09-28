@@ -12,6 +12,7 @@
 #include "MainFrm.h"
 
 #include "DialogCoord.h"
+#include "ScopedPhysicalDpi.h"
 
 #define WM_CHOOSE_CONNECT_DONE WM_USER + 1
 #define WM_EXTRACT_DONE WM_USER + 2
@@ -75,10 +76,16 @@ CCurveSnapView::CCurveSnapView()
 
   _pChooseConnectCurveThread = NULL;
   _pExtractThread = NULL;
+
+  _cursorEraserShape = NULL;
+  _eraserCursorHalf = 0;
+  _eraserCursorSquare = false;
 }
 
 CCurveSnapView::~CCurveSnapView()
 {
+  if (_cursorEraserShape)
+    DestroyCursor(_cursorEraserShape);
 }
 
 BOOL CCurveSnapView::PreCreateWindow(CREATESTRUCT& cs)
@@ -395,12 +402,121 @@ void CCurveSnapView::OnMouseMove(UINT nFlags, CPoint point)
   {
     if( nFlags & MK_LBUTTON )
     {
-      pDoc->extractor.Draw(point, operation-100);
+      DrawAt(point);
       this->Invalidate(false);
     }
   }
 
   CView::OnMouseMove(nFlags, point);
+}
+
+void CCurveSnapView::DrawAt(CPoint point)
+{
+  CCurveSnapDoc* pDoc = GetDocument();
+
+  if (operation == ERASING)
+  {
+    CMainFrame *pFrmWnd = (CMainFrame*)AfxGetMainWnd();
+    pDoc->extractor.Draw(point, pFrmWnd->m_wndToolOptions.GetEraserSize()/2.0,
+                         pFrmWnd->m_wndToolOptions.IsEraserSquare());
+  }
+  else
+    pDoc->extractor.Draw(point, operation-100);
+}
+
+static bool InsideShape(int dx, int dy, double half, bool square)
+{
+  if (square)
+    return abs(dx) <= half && abs(dy) <= half;
+  else
+    return dx*dx + dy*dy <= half*half;
+}
+
+// Monochrome cursor with the 1-pixel outline of a circle/square of the given
+// half size (screen pixels), inverting the screen so it shows on any background.
+static HCURSOR CreateShapeCursor(double half, bool square)
+{
+  int c = (int)ceil(half) + 1;
+  int n = 2*c + 1;
+  int stride = (n + 15) / 16 * 2;		// rows are WORD aligned
+
+  // top half: AND mask (1 = keep screen), bottom half: XOR mask (1 = invert)
+  std::vector<BYTE> bits(stride * n * 2, 0);
+  memset(&bits[0], 0xFF, stride * n);
+  BYTE* xorMask = &bits[stride * n];
+
+  for (int y = 0; y < n; y++)
+    for (int x = 0; x < n; x++)
+    {
+      int dx = x - c, dy = y - c;
+      bool edge = InsideShape(dx, dy, half, square) &&
+        (!InsideShape(dx-1, dy, half, square) || !InsideShape(dx+1, dy, half, square) ||
+         !InsideShape(dx, dy-1, half, square) || !InsideShape(dx, dy+1, half, square));
+      bool center = half >= 4 && dx == 0 && dy == 0;
+      if (edge || center)
+        xorMask[y*stride + x/8] |= 0x80 >> (x%8);
+    }
+
+  HBITMAP hMask = CreateBitmap(n, 2*n, 1, 1, &bits[0]);
+  if (!hMask)
+    return NULL;
+
+  ICONINFO ii = { FALSE, (DWORD)c, (DWORD)c, hMask, NULL };
+  HCURSOR hCursor = (HCURSOR)CreateIconIndirect(&ii);
+  DeleteObject(hMask);
+  return hCursor;
+}
+
+// The process is DPI-unaware: Windows stretches our windows at >100% scaling,
+// but not a cursor built at runtime. Returns physical pixels per window pixel.
+static double GetDpiStretch(HWND hwnd)
+{
+  CRect logical, physical;
+  ::GetWindowRect(hwnd, &logical);
+  {
+    ScopedPhysicalDpi physical_dpi;
+    ::GetWindowRect(hwnd, &physical);
+  }
+
+  if (logical.Width() <= 0 || physical.Width() <= 0)
+    return 1.0;
+  return double(physical.Width()) / logical.Width();
+}
+
+void CCurveSnapView::SetEraserCursor()
+{
+  CMainFrame *pFrmWnd = (CMainFrame*)AfxGetMainWnd();
+  double radius = pFrmWnd->m_wndToolOptions.GetEraserSize()/2.0;
+  bool square = pFrmWnd->m_wndToolOptions.IsEraserSquare();
+
+  // ImageCurveExtractor::Draw erases r image pixels around the clicked pixel,
+  // so the erased area reaches (r+0.5) image pixels from its center.
+  cvx::HwndShower& shower = GetDocument()->extractor.shower;
+  double scale = shower.IsEmpty() ? 1.0 : shower.GetScale();
+  if (scale <= 0)
+    scale = 1.0;
+  double half = (cvx::round(radius/scale) + 0.5) * scale;
+  half *= GetDpiStretch(m_hWnd);
+
+  if (!_cursorEraserShape || half != _eraserCursorHalf || square != _eraserCursorSquare)
+  {
+    HCURSOR hNew = CreateShapeCursor(half, square);
+    if (!hNew)
+    {
+      ::SetCursor(_cursorEraser);
+      return;
+    }
+
+    ::SetCursor(hNew);	// before destroying the old one, which may be in use
+    if (_cursorEraserShape)
+      DestroyCursor(_cursorEraserShape);
+
+    _cursorEraserShape = hNew;
+    _eraserCursorHalf = half;
+    _eraserCursorSquare = square;
+  }
+  else
+    ::SetCursor(_cursorEraserShape);
 }
 
 void CCurveSnapView::OnEditEraser()
@@ -495,7 +611,7 @@ void CCurveSnapView::OnLButtonDown(UINT nFlags, CPoint point)
     break;
   case ERASING:
   case PEN:
-    pDoc->extractor.Draw(point, operation-100);
+    DrawAt(point);
     this->Invalidate(false);
     pDoc->UpdateAllViews(this);
     //if (!pDoc->extractor.IsExtracted())
@@ -524,7 +640,8 @@ void CCurveSnapView::OnLButtonDown(UINT nFlags, CPoint point)
     }
     break;
   case CHOOSING_COLOR:
-    if (pDoc->extractor.ChooseColorCurve(point))
+    if (pDoc->extractor.ChooseColorCurve(point,
+          ((CMainFrame*)AfxGetMainWnd())->m_wndToolOptions.GetColorThreshold()))
     {
       Invalidate(FALSE);
       pDoc->UpdateAllViews(this);
@@ -597,7 +714,7 @@ BOOL CCurveSnapView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
     ::SetCursor(_cursorCross);   
     break;
   case ERASING:
-    ::SetCursor(_cursorEraser);
+    SetEraserCursor();
     break;
   case PEN:
     ::SetCursor(_cursorPen);
