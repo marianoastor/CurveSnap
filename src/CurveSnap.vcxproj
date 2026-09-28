@@ -262,7 +262,8 @@
       <AdditionalLibraryDirectories>..\vendor\opencv\lib\</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDpiAwareness>true</EnableDpiAwareness>
+      <!-- DPI-unaware so Windows scales the UI; Snap switches to physical pixels itself. -->
+      <EnableDpiAwareness>false</EnableDpiAwareness>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -295,7 +296,8 @@
       <AdditionalLibraryDirectories>..\vendor\opencv\lib\</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDpiAwareness>true</EnableDpiAwareness>
+      <!-- DPI-unaware so Windows scales the UI; Snap switches to physical pixels itself. -->
+      <EnableDpiAwareness>false</EnableDpiAwareness>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
